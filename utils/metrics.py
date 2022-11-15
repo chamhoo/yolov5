@@ -16,8 +16,8 @@ from utils import TryExcept, threaded
 
 def fitness(x):
     # Model fitness as a weighted combination of metrics
-    w = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
-    return (x[:, :4] * w).sum(1)
+    w = [0.0, 0.0, 0.0, 0.0, 1.0] # weights for [P, R, mAP@0.5, mAP@0.5:0.95, F2@0.3:0.8]
+    return (x[:, :5] * w).sum(1)
 
 
 def smooth(y, f=0.05):
@@ -78,21 +78,21 @@ def ap_per_class(tp, conf, pred_cls, target_cls, plot=False, save_dir='.', names
             if plot and j == 0:
                 py.append(np.interp(px, mrec, mpre))  # precision at mAP@0.5
 
-    # Compute F1 (harmonic mean of precision and recall)
-    f1 = 2 * p * r / (p + r + eps)
+    # Compute f2 (harmonic mean of precision and recall)
+    f2 = 5 * p * r / (4 * p + r + 1e-16)
     names = [v for k, v in names.items() if k in unique_classes]  # list: only classes that have data
     names = dict(enumerate(names))  # to dict
     if plot:
         plot_pr_curve(px, py, ap, Path(save_dir) / f'{prefix}PR_curve.png', names)
-        plot_mc_curve(px, f1, Path(save_dir) / f'{prefix}F1_curve.png', names, ylabel='F1')
+        plot_mc_curve(px, f2, Path(save_dir) / f'{prefix}f2_curve.png', names, ylabel='f2')
         plot_mc_curve(px, p, Path(save_dir) / f'{prefix}P_curve.png', names, ylabel='Precision')
         plot_mc_curve(px, r, Path(save_dir) / f'{prefix}R_curve.png', names, ylabel='Recall')
 
-    i = smooth(f1.mean(0), 0.1).argmax()  # max F1 index
-    p, r, f1 = p[:, i], r[:, i], f1[:, i]
+    i = smooth(f2.mean(0), 0.1).argmax()  # max f2 index
+    p, r, f2 = p[:, i], r[:, i], f2[:, i]
     tp = (r * nt).round()  # true positives
     fp = (tp / (p + eps) - tp).round()  # false positives
-    return tp, fp, p, r, f1, ap, unique_classes.astype(int)
+    return tp, fp, p, r, f2, ap, unique_classes.astype(int)
 
 
 def compute_ap(recall, precision):
