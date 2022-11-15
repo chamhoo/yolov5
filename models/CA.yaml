@@ -54,6 +54,6 @@ head:
    [-1, 3, C3, [1024, False]],  # 27 (P5/32-large)       [512, 512, 1, False]
    [-1, 3, CoordAtt, [1024]],
    #[-1, 3, C3, [1024]],
-
-   [[22, 26, 30], 1, ASFF_Detect, [nc, anchors,0.5,True]],  # ASFF_Detect(P3, P4, P5,mult,rfb)
+   [[22, 26, 30], 1, Detect, [nc, anchors]],  # Detect(P3, P4, P5)
+   # [[22, 26, 30], 1, ASFF_Detect, [nc, anchors,0.5,True]],  # ASFF_Detect(P3, P4, P5,mult,rfb)
   ]
